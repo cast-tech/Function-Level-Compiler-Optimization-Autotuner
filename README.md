@@ -23,10 +23,10 @@ The auto-tuner is designed to run with **GCC 15.2.0**.
 To build the specified GCC version, run the following script from the project root directory:
 
 ```shell
-./gcc/scripts/create_gcc_release.sh
+./scripts/create_gcc_release.sh
 ```
 
-GCC release will be created in `gcc/gcc-15.2.0-bin/` directory.
+GCC release will be created in `gcc-15.2.0-bin/` directory.
 
 ### GCC Plugin
 
@@ -34,10 +34,10 @@ The GCC plugin enables easy application of function-level and file-level optimiz
 
 To build the plugin, run:
 ```shell
-./gcc/plugin/build.sh /path/to/gcc/gcc-15.2.0-bin/bin/g++
+./plugin/build.sh /path/to/gcc-15.2.0-bin/bin/g++
 ```
 
-The compiled plugin will be located at `gcc/plugin/build/cxx_optimizer.so`.
+The compiled plugin will be located at `plugin/build/cxx_optimizer.so`.
 ### Virtual Environment
 
 To set up a virtual environment, run the following commands from the project root directory:
@@ -46,11 +46,12 @@ To set up a virtual environment, run the following commands from the project roo
 python3 -m venv venv
 source ./venv/bin/activate
 pip3 install -e .
+pip3 install -e ./opentuner/
 ```
 
 ## Auto-tuning Scripts
 
-Run the scripts from the `gcc/tools` directory.
+Run the scripts from the `tools` directory.
 
 ### tune_project.py
 
@@ -60,7 +61,7 @@ The optimizations are applied using a GCC Plugin.
 After tuning, a JSON report files will be generated containing the results of the tuner's execution.
 
 ```shell
-python3 tune_project.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/gcc/plugin/build/cxx_optimizer.so --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/
+python3 tune_project.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/ --stop-after 100
 ```
 
 The optimization entries file is a JSON file specifying which functions or files need to be auto-tuned and the order in
@@ -111,14 +112,14 @@ This Python script uses profiler to collect function-level program runtimes and 
 optimization entries for a specified cmake project.
 
 ```shell
-python3 create_project_optimization_entries.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/gcc/plugin/build/cxx_optimizer.so --output-dir /path/to/output/
+python3 create_project_optimization_entries.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --output-dir /path/to/output/
 ```
 
 ### Support for other build systems
 
 The scripts described above use abstract interfaces (`builder`, `runner`, and `profiler`) defined in
-`gcc/tools/interfaces`. This design allows the scripts to work with different build systems through specific
+`tools/interfaces`. This design allows the scripts to work with different build systems through specific
 implementations.
 
-The `gcc/tools/implementations` directory contains implementations for build systems beyond CMake. To adapt the scripts
+The `tools/implementations` directory contains implementations for build systems beyond CMake. To adapt the scripts
 for a new build system, simply provide a concrete implementation of these interfaces for that system.
