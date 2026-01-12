@@ -1,4 +1,4 @@
-# GCC Optimization Tuning
+# Function Level Compiler Optimization Autotuner
 
 A collection of tools for function/file level GCC optimization tuning.
 The tool uses the OpenTuner API for iterative optimization selection and a GCC Plugin to apply those optimizations
