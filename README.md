@@ -47,7 +47,7 @@ pip3 install -e .
 pip3 install -e ./opentuner/
 ```
 
-## Auto-tuning Scripts
+## Autotuning Scripts
 
 Run the scripts from the `tools` directory.
 
