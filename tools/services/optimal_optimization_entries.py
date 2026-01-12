@@ -2,7 +2,7 @@ import os
 import json
 from collections import defaultdict
 
-from gcc.tools.services.gcc_plugin_support import PluginEnhancedBuilder
+from tools.services.gcc_plugin_support import PluginEnhancedBuilder
 
 
 def combine_functions_with_same_name(function_runtimes):

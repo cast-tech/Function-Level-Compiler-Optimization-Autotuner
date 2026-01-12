@@ -2,7 +2,7 @@ import os
 import time
 import subprocess
 
-from gcc.tools.interfaces.runner import Runner
+from tools.interfaces.runner import Runner
 
 
 class BinaryFileRunner(Runner):

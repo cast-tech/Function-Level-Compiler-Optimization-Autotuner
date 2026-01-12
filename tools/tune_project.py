@@ -2,10 +2,10 @@ import argparse
 import opentuner
 import json
 
-from gcc.tools.implementations.builders.cmake_project_builder import CMakeProjectBuilder
-from gcc.tools.implementations.runners.binary_file_runner import BinaryFileRunner
-from gcc.tools.implementations.runners.averaging_runner import AveragingRunner
-from gcc.tools.services.iterative_tuner import iterative_tune
+from tools.implementations.builders.cmake_project_builder import CMakeProjectBuilder
+from tools.implementations.runners.binary_file_runner import BinaryFileRunner
+from tools.implementations.runners.averaging_runner import AveragingRunner
+from tools.services.iterative_tuner import iterative_tune
 
 argparser = argparse.ArgumentParser(parents=opentuner.argparsers())
 argparser.add_argument('--project-dir', help='Path to the project directory', required=True)

@@ -2,7 +2,7 @@ import os
 import subprocess
 import csv
 
-from gcc.tools.interfaces.runner import Runner
+from tools.interfaces.runner import Runner
 
 
 class SPECRunner(Runner):

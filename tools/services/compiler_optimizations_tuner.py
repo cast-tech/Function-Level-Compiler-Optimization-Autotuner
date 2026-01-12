@@ -5,11 +5,11 @@ import os
 
 from opentuner.resultsdb.models import Result
 from opentuner.search import manipulator
-from gcc.tools.services.cpu_info import get_cpu_info
-from gcc.tools.services.gcc_plugin_support import PluginEnhancedBuilder
-from gcc.tools.services.gcc_plugin_support import PluginConfigGenerationError
-from gcc.tools.interfaces.runner import RunError
-from gcc.tools.interfaces.builder import BuildError
+from tools.services.cpu_info import get_cpu_info
+from tools.services.gcc_plugin_support import PluginEnhancedBuilder
+from tools.services.gcc_plugin_support import PluginConfigGenerationError
+from tools.interfaces.runner import RunError
+from tools.interfaces.builder import BuildError
 
 
 class CompilerOptimizationsTuner(opentuner.measurement.MeasurementInterface):

@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from gcc.tools.interfaces.profiler import Profiler
+from tools.interfaces.profiler import Profiler
 
 
 class SPECProfiler(Profiler):

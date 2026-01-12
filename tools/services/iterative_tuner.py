@@ -2,7 +2,7 @@ import os
 import json
 import shutil
 
-from gcc.tools.services.compiler_optimizations_tuner import CompilerOptimizationsTuner
+from tools.services.compiler_optimizations_tuner import CompilerOptimizationsTuner
 
 
 def get_best_optimization_config(tuner_name, output_dir):

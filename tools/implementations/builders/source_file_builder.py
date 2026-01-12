@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from gcc.tools.interfaces.builder import Builder
+from tools.interfaces.builder import Builder
 
 
 class SourceFileBuilder(Builder):

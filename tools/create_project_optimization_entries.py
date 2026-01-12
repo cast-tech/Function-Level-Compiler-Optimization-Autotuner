@@ -1,11 +1,11 @@
 import argparse
 
-from gcc.tools.implementations.runners.averaging_runner import AveragingRunner
-from gcc.tools.implementations.builders.cmake_project_builder import CMakeProjectBuilder
-from gcc.tools.implementations.profilers.binary_file_profiler import BinaryFileProfiler
-from gcc.tools.implementations.utils.perf import Perf
-from gcc.tools.implementations.runners.binary_file_runner import BinaryFileRunner
-from gcc.tools.services.optimal_optimization_entries import create_optimal_optimization_entries
+from tools.implementations.runners.averaging_runner import AveragingRunner
+from tools.implementations.builders.cmake_project_builder import CMakeProjectBuilder
+from tools.implementations.profilers.binary_file_profiler import BinaryFileProfiler
+from tools.implementations.utils.perf import Perf
+from tools.implementations.runners.binary_file_runner import BinaryFileRunner
+from tools.services.optimal_optimization_entries import create_optimal_optimization_entries
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('--project-dir', help='Path to the project directory', required=True)

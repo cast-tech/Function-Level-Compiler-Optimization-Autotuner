@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 
-from gcc.tools.interfaces.builder import Builder
+from tools.interfaces.builder import Builder
 
 
 class SPECBuilder(Builder):

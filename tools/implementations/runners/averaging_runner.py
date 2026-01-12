@@ -1,4 +1,4 @@
-from gcc.tools.interfaces.runner import Runner
+from tools.interfaces.runner import Runner
 
 
 class AveragingRunner(Runner):
