@@ -11,11 +11,9 @@ during compilation.
 Install the following dependencies:
 
 - python3
-- make
 - cmake
 - perf
 - lscpu
-- git-lfs
 
 ### GCC Release
 
