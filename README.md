@@ -15,6 +15,14 @@ Install the following dependencies:
 - perf
 - lscpu
 
+### OpenTuner Submodule
+
+Initialize and update the OpenTuner submodule by running:
+
+```shell
+git submodule update --init
+```
+
 ### GCC Release
 
 The auto-tuner is designed to run with **GCC 15.2.0**.
