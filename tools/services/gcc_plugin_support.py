@@ -1,5 +1,5 @@
 import os
-from tools.services.enhanced_builder import EnhancedBuilderError
+from tools.services.enhanced_builder import EnhancedBuilder
 from tools.services.enhanced_builder import EnhancedBuilderError
 
 
