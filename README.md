@@ -123,13 +123,22 @@ During function-level auto-tuning, the `filename` key specifies the file contain
 
 During file-level auto-tuning, `filename` refers to the main input file being compiled.
 
-### create_project_optimization_entries.py
+### create_project_optimization_entries_function.py
 
 This Python script uses profiler to collect function-level program runtimes and create optimal function-level
 optimization entries for a specified cmake project.
 
 ```shell
-python3 create_project_optimization_entries.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --output-dir /path/to/output/
+python3 create_project_optimization_entries_function.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --output-dir /path/to/output/
+```
+
+### create_project_optimization_entries_file.py
+
+This Python script uses profiler to collect file-level program runtimes and create optimal file-level
+optimization entries for a specified cmake project.
+
+```shell
+python3 create_project_optimization_entries_file.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --output-dir /path/to/output/
 ```
 
 ### Support for other build systems
