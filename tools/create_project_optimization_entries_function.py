@@ -6,6 +6,7 @@ from tools.implementations.profilers.binary_file_profiler import BinaryFileProfi
 from tools.implementations.utils.perf import Perf
 from tools.implementations.runners.binary_file_runner import BinaryFileRunner
 from tools.services.optimal_optimization_entries import create_optimal_optimization_entries
+from tools.services.gcc_plugin_support import PluginEnhancedBuilder
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('--project-dir', help='Path to the project directory', required=True)
@@ -25,10 +26,11 @@ def main():
 
     # Can be replaced with any Builder, Runner or Profiler
     builder = CMakeProjectBuilder(args.compiler_bin, args.project_dir, args.output_dir, args.project_binary)
+    enhanced_builder = PluginEnhancedBuilder(builder, args.gcc_plugin, args.output_dir)
     runner = AveragingRunner(BinaryFileRunner(timeout=args.timeout, cmd_args=args.cmd_args))
     profiler = BinaryFileProfiler(Perf(args.perf, args.timeout, args.frequency, args.output_dir), args.cmd_args)
 
-    create_optimal_optimization_entries(builder, runner, profiler, args.gcc_plugin, args.output_dir, args.entries_limit)
+    create_optimal_optimization_entries(enhanced_builder, runner, profiler, True, args.output_dir, args.entries_limit)
 
 
 if __name__ == "__main__":
