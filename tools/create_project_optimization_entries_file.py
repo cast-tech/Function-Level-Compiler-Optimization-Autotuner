@@ -14,7 +14,7 @@ argparser.add_argument('--project-dir', help='Path to the project directory', re
 argparser.add_argument('--compiler-bin', help='Path to the compiler bin directory', required=True)
 argparser.add_argument('--project-binary', help='Name of the project binary', required=True)
 argparser.add_argument('--cmd-args', help='Arguments passed to binary', type=str, default="")
-argparser.add_argument('--gcc-wrapper', help='Path to the gcc wrapper script directory', required=True)
+argparser.add_argument('--gcc-wrapper-bin', help='Path to the gcc wrapper bin directory', required=True)
 argparser.add_argument('--output-dir', help='Path to the output directory', required=True)
 argparser.add_argument('--timeout', help='Program running timeout in seconds', type=int, default=10)
 argparser.add_argument('--perf', help='Path to perf', type=str, default='perf')
@@ -26,8 +26,8 @@ def main():
     args = argparser.parse_args()
 
     # Can be replaced with any Builder, Runner or Profiler
-    builder = CMakeProjectBuilder(args.gcc_wrapper, args.project_dir, args.output_dir, args.project_binary)
-    enhanced_builder = WrapperEnhancedBuilder(builder, args.gcc_wrapper, args.compiler_bin, args.output_dir)
+    builder = CMakeProjectBuilder(args.gcc_wrapper_bin, args.project_dir, args.output_dir, args.project_binary)
+    enhanced_builder = WrapperEnhancedBuilder(builder, args.gcc_wrapper_bin, args.compiler_bin, args.output_dir)
     runner = AveragingRunner(BinaryFileRunner(timeout=args.timeout, cmd_args=args.cmd_args))
     profiler = BinaryFileProfiler(Perf(args.perf, args.timeout, args.frequency, args.output_dir), args.cmd_args)
 
