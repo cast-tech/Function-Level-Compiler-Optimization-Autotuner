@@ -20,7 +20,7 @@ def get_best_optimization_config(tuner_name, output_dir):
     return optimization_config
 
 
-def iterative_tune(args, runner, builder, optimization_entries, output_dir, gcc_plugin):
+def iterative_tune(args, runner, builder, optimization_entries, output_dir):
     db_dir = os.path.join(output_dir, 'opentuner.db')
     shutil.rmtree(db_dir, ignore_errors=True)
     os.makedirs(db_dir, exist_ok=True)
@@ -30,7 +30,7 @@ def iterative_tune(args, runner, builder, optimization_entries, output_dir, gcc_
         tuner_name = "tuning_entry_" + str(index)
         args.database = os.path.join(db_dir, tuner_name)
         do_warmup = (index == 0)
-        CompilerOptimizationsTuner.main(args, runner, builder, gcc_plugin, init_optimization_config, entry,
+        CompilerOptimizationsTuner.main(args, runner, builder, init_optimization_config, entry,
                                         tuner_name, do_warmup, output_dir)
         best_optimization_config = get_best_optimization_config(tuner_name, output_dir)
         if best_optimization_config is None:

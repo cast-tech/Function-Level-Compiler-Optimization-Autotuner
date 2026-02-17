@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Configuration and Argument Filtering
+GCC_BIN="${GCC_BIN}"
+MAP_STR=""
+config_path="${OPTIMIZATION_CONFIG_PATH}"
+
+if [[ -f "$config_path" ]]; then
+    MAP_STR=$(cat "$config_path")
+fi
+
+compiler_args=()
+
+for arg in "$@"; do
+    if [[ "$arg" == GCC_BIN=* ]]; then
+        GCC_BIN="${arg#GCC_BIN=}"
+    elif [[ "$arg" == OPTIMIZATION_CONFIG_PATH=* ]]; then
+        config_path="${arg#OPTIMIZATION_CONFIG_PATH=}"
+        if [[ -f "$config_path" ]]; then
+            MAP_STR=$(cat "$config_path")
+        fi
+    else
+        compiler_args+=("$arg")
+    fi
+done
+
+# Step 1: Parse the target map string
+IFS=$'\n' read -d '' -ra ENTRIES <<< "${MAP_STR}" || true
+
+extra_flags=()
+found_target=false
+# Identify targets and collect flags from the filtered compiler arguments
+for arg in "${compiler_args[@]}"; do
+    for entry in "${ENTRIES[@]}"; do
+        target="${entry%%:*}"
+        flags_string="${entry#*:}"
+
+        if [[ "$arg" == "$target" ]] || [[ "$arg" == *"/$target" ]]; then
+            # Split the flag string into individual flags and add to our list
+            read -ra flags_array <<< "$flags_string"
+            extra_flags+=("${flags_array[@]}")
+            found_target=true
+        fi
+    done
+done
+
+# If the target file is not found just execute the comand as it was
+if [[ "$found_target" == "false" ]]; then
+    "${GCC_BIN}/gcc" "${compiler_args[@]}"
+    exit 0
+fi
+
+# Step 2: Build the final command arguments
+final_args=()
+flags_injected=false
+
+for arg in "${compiler_args[@]}"; do
+    # Inject instead of -O{0,1,2,3,s,fast} if found
+    if [[ "$arg" =~ ^-O([0123s]|fast)$ ]]; then
+        final_args+=("${extra_flags[@]}")
+        flags_injected=true
+        continue
+    fi
+    final_args+=("$arg")
+done
+
+# If -O optimization flag wasn't present, append extra flags at the end
+if [[ "$flags_injected" == "false" ]]; then
+    final_args+=("${extra_flags[@]}")
+fi
+
+# Step 3: Run the command
+"${GCC_BIN}/gcc" "${final_args[@]}"
