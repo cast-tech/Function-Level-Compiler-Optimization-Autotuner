@@ -78,7 +78,7 @@ The optimizations are applied using a GCC wrapper script.
 After tuning, a JSON report files will be generated containing the results of the tuner's execution.
 
 ```shell
-python3 tune_project_gcc_wrapper.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-wrapper /path/to/wrapper/script --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/ --stop-after 100
+python3 tune_project_gcc_wrapper.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-wrapper-bin /path/to/wrapper/bin/ --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/ --stop-after 100
 ```
 
 The optimization entries file is a JSON file specifying which functions or files need to be auto-tuned and the order in
