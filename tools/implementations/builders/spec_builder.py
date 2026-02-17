@@ -24,7 +24,7 @@ class SPECBuilder(Builder):
         self.output_dir = output_dir
         self.build_dir = os.path.join(output_dir, "spec_build.dir")
         self.core_count = core_count
-        self.gcc_dir = os.path.dirname(gcc_bin)
+        self.gcc_dir = os.path.dirname(os.path.normpath(gcc_bin))
 
 
     def build(self, flags):
