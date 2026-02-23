@@ -6,21 +6,21 @@ import os
 from opentuner.resultsdb.models import Result
 from opentuner.search import manipulator
 from tools.services.cpu_info import get_cpu_info
-from tools.services.gcc_plugin_support import PluginEnhancedBuilder
-from tools.services.gcc_plugin_support import PluginConfigGenerationError
+from tools.services.enhanced_builder import EnhancedBuilder
+from tools.services.enhanced_builder import EnhancedBuilderError
 from tools.interfaces.runner import RunError
 from tools.interfaces.builder import BuildError
 
 
 class CompilerOptimizationsTuner(opentuner.measurement.MeasurementInterface):
-    def __init__(self, args, runner, builder, gcc_plugin_path, init_opt_config, current_opt_entry, name, do_warmup,
+    def __init__(self, args, runner, builder, init_opt_config, current_opt_entry, name, do_warmup,
                  output_dir, *pargs, **kwargs):
         super(CompilerOptimizationsTuner, self).__init__(args, *pargs, **kwargs)
         opentuner.init_logging()
         self.log = logging.getLogger(name)
         self.log.info(f"Tuner init...")
         self.runner = runner
-        self.enhanced_builder = PluginEnhancedBuilder(builder, gcc_plugin_path, output_dir)
+        self.enhanced_builder = builder
         self.init_opt_config = init_opt_config
         self.current_opt_entry = current_opt_entry
         self.history = []
@@ -74,8 +74,8 @@ class CompilerOptimizationsTuner(opentuner.measurement.MeasurementInterface):
         except BuildError as e:
             self.log.warning(f"Builder failed: {e}")
             return float('inf')
-        except PluginConfigGenerationError as e:
-            self.log.warning(f"Plugin Config Generator failed: {e}")
+        except EnhancedBuilderError as e:
+            self.log.warning(f"Enhanced Builder failed: {e}")
             return float('inf')
         if runtime == float('inf'):
             self.log.warning(f"Runtime evaluation failed")

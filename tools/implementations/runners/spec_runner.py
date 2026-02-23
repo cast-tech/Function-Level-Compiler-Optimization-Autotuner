@@ -21,13 +21,14 @@ class SPECRunner(Runner):
 
     def run(self, build_info):
         try:
-            spec_root, build_dir, config_path, benchmark_name, env = build_info
+            spec_root, build_dir, config_path, benchmark_name, env, gcc_dir = build_info
             shrc_path = os.path.join(spec_root, 'shrc')
-            run_cmd = f"cd {spec_root} && . {shrc_path} && runcpu --output_root={build_dir} --config={config_path} --tune=peak --size={self.size} --iterations={self.iterations} --threads={self.threads} --noreportable --nobuild {benchmark_name}"
+            run_cmd = f". {shrc_path} && runcpu --output_root={build_dir} --config={config_path} --tune=peak --size={self.size} --iterations={self.iterations} --threads={self.threads} --noreportable --nobuild {benchmark_name} --define gcc_dir={gcc_dir}"
 
             subprocess.run(
                 run_cmd,
                 shell=True,
+                cwd=spec_root,
                 env=env,
                 executable='/bin/bash',
                 stdout=subprocess.PIPE,
