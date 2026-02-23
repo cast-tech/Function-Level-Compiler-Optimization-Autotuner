@@ -23,16 +23,24 @@ def get_function_files(function_runtimes, build_directory):
         for file in files:
             full_path = os.path.join(root, file)
             if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
-                function_file_mapping.update(get_function_file_mapping(full_path))
+                try:
+                    function_to_file_mapping_for_file = get_function_file_mapping(full_path)
+                except Exception as e:
+                    print(f"Error getting function to file mapping for {full_path}: {e}")
+                    continue
+                for func_name, file_path in function_to_file_mapping_for_file.items():
+                    if func_name not in function_file_mapping:
+                        function_file_mapping[func_name] = []
+                    if file_path not in function_file_mapping[func_name]:
+                        function_file_mapping[func_name].append(file_path)
+
     results = {}
     for func in function_runtimes:
         function_name = func[0]
-        if (function_name in function_file_mapping and
-                (function_file_mapping[function_name].endswith(".cpp") or
-                 function_file_mapping[function_name].endswith(".cxx") or
-                 function_file_mapping[function_name].endswith(".cc") or
-                 function_file_mapping[function_name].endswith(".c"))):
-            results[function_name] = [function_file_mapping[function_name]]
+        if function_name in function_file_mapping:
+            matching_files = [f for f in function_file_mapping[function_name] if f.endswith((".cpp", ".cxx", ".cc", ".c"))]
+            if matching_files:
+                results[function_name] = matching_files
     return results
 
 def get_file_runtimes(function_runtimes, build_directory): 

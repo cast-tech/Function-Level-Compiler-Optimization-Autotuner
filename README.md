@@ -78,7 +78,11 @@ The optimizations are applied using a GCC wrapper script.
 After tuning, a JSON report files will be generated containing the results of the tuner's execution.
 
 ```shell
+<<<<<<< HEAD
 python3 tune_project_gcc_wrapper.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-wrapper-bin /path/to/wrapper/bin --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/ --stop-after 100
+=======
+python3 tune_project_gcc_wrapper.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-wrapper-bin /path/to/wrapper/bin/ --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/ --stop-after 100
+>>>>>>> optimizations_entry_detection_for_file
 ```
 
 The optimization entries file is a JSON file specifying which functions or files need to be auto-tuned and the order in
@@ -138,7 +142,11 @@ This Python script uses profiler to collect file-level program runtimes and crea
 optimization entries for a specified cmake project.
 
 ```shell
+<<<<<<< HEAD
 python3 create_project_optimization_entries_file.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-wrapper-bin /path/to/wrapper/bin --output-dir /path/to/output/
+=======
+python3 create_project_optimization_entries_file.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-wrapper-bin /path/to/wrapper/bin/ --output-dir /path/to/output/
+>>>>>>> optimizations_entry_detection_for_file
 ```
 
 ### Support for other build systems
