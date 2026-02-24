@@ -59,7 +59,7 @@ pip3 install -e ./opentuner/
 
 Run the scripts from the `tools` directory.
 
-### tune_project.py
+### tune_project_gcc_plugin.py
 
 This Python script uses the OpenTuner API to iteratively tune GCC optimizations at the function or file level in C/C++
 cmake project.
@@ -67,7 +67,18 @@ The optimizations are applied using a GCC Plugin.
 After tuning, a JSON report files will be generated containing the results of the tuner's execution.
 
 ```shell
-python3 tune_project.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/ --stop-after 100
+python3 tune_project_gcc_plugin.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/ --stop-after 100
+```
+
+### tune_project_gcc_wrapper.py
+
+This Python script uses the OpenTuner API to iteratively tune GCC optimizations at the file level in C/C++
+cmake project.
+The optimizations are applied using a GCC wrapper script.
+After tuning, a JSON report files will be generated containing the results of the tuner's execution.
+
+```shell
+python3 tune_project_gcc_wrapper.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-wrapper-bin /path/to/wrapper/bin/ --optimization-entries /path/to/optimization_entries.json --output-dir /path/to/output/ --stop-after 100
 ```
 
 The optimization entries file is a JSON file specifying which functions or files need to be auto-tuned and the order in
@@ -112,13 +123,22 @@ During function-level auto-tuning, the `filename` key specifies the file contain
 
 During file-level auto-tuning, `filename` refers to the main input file being compiled.
 
-### create_project_optimization_entries.py
+### create_project_optimization_entries_function.py
 
 This Python script uses profiler to collect function-level program runtimes and create optimal function-level
 optimization entries for a specified cmake project.
 
 ```shell
-python3 create_project_optimization_entries.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --output-dir /path/to/output/
+python3 create_project_optimization_entries_function.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-plugin /path/to/plugin/build/cxx_optimizer.so --output-dir /path/to/output/
+```
+
+### create_project_optimization_entries_file.py
+
+This Python script uses profiler to collect file-level program runtimes and create optimal file-level
+optimization entries for a specified cmake project.
+
+```shell
+python3 create_project_optimization_entries_file.py --project-dir /path/to/project --project-binary binary_name --compiler-bin /path/to/gcc-15.2.0-bin/bin/ --gcc-wrapper-bin /path/to/wrapper/bin/ --output-dir /path/to/output/
 ```
 
 ### Support for other build systems
