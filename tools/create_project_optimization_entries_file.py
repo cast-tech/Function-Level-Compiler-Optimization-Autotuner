@@ -6,14 +6,15 @@ from tools.implementations.profilers.binary_file_profiler import BinaryFileProfi
 from tools.implementations.utils.perf import Perf
 from tools.implementations.runners.binary_file_runner import BinaryFileRunner
 from tools.services.optimal_optimization_entries import create_optimal_optimization_entries
-from tools.services.gcc_plugin_support import PluginEnhancedBuilder
+from tools.services.gcc_wrapper_support import WrapperEnhancedBuilder
+
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('--project-dir', help='Path to the project directory', required=True)
 argparser.add_argument('--compiler-bin', help='Path to the compiler bin directory', required=True)
 argparser.add_argument('--project-binary', help='Name of the project binary', required=True)
 argparser.add_argument('--cmd-args', help='Arguments passed to binary', type=str, default="")
-argparser.add_argument('--gcc-plugin', help='Path to the gcc plugin .so file', required=True)
+argparser.add_argument('--gcc-wrapper-bin', help='Path to the gcc wrapper bin directory', required=True)
 argparser.add_argument('--output-dir', help='Path to the output directory', required=True)
 argparser.add_argument('--build-cores', help='Number of parallel CMake build jobs', type=int, default=1)
 argparser.add_argument('--timeout', help='Program running timeout in seconds', type=int, default=10)
@@ -26,15 +27,13 @@ def main():
     args = argparser.parse_args()
 
     # Can be replaced with any Builder, Runner or Profiler
-    builder = CMakeProjectBuilder(args.compiler_bin, args.project_dir, args.output_dir,
+    builder = CMakeProjectBuilder(args.gcc_wrapper_bin, args.project_dir, args.output_dir,
                                   args.project_binary, args.build_cores)
-    enhanced_builder = PluginEnhancedBuilder(builder, args.gcc_plugin, args.output_dir)
+    enhanced_builder = WrapperEnhancedBuilder(builder, args.gcc_wrapper_bin, args.compiler_bin, args.output_dir)
     runner = AveragingRunner(BinaryFileRunner(timeout=args.timeout, cmd_args=args.cmd_args))
-    profiler = BinaryFileProfiler(Perf(args.perf, args.timeout, args.frequency, args.output_dir),
-                                  args.cmd_args)
+    profiler = BinaryFileProfiler(Perf(args.perf, args.timeout, args.frequency, args.output_dir), args.cmd_args)
 
-    create_optimal_optimization_entries(enhanced_builder, runner, profiler, True,
-                                        args.output_dir, args.entries_limit)
+    create_optimal_optimization_entries(enhanced_builder, runner, profiler, False, args.output_dir, args.entries_limit)
 
 
 if __name__ == "__main__":

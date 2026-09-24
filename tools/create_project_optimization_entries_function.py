@@ -30,11 +30,9 @@ def main():
                                   args.project_binary, args.build_cores)
     enhanced_builder = PluginEnhancedBuilder(builder, args.gcc_plugin, args.output_dir)
     runner = AveragingRunner(BinaryFileRunner(timeout=args.timeout, cmd_args=args.cmd_args))
-    profiler = BinaryFileProfiler(Perf(args.perf, args.timeout, args.frequency, args.output_dir),
-                                  args.cmd_args)
+    profiler = BinaryFileProfiler(Perf(args.perf, args.timeout, args.frequency, args.output_dir), args.cmd_args)
 
-    create_optimal_optimization_entries(enhanced_builder, runner, profiler, True,
-                                        args.output_dir, args.entries_limit)
+    create_optimal_optimization_entries(enhanced_builder, runner, profiler, True, args.output_dir, args.entries_limit)
 
 
 if __name__ == "__main__":

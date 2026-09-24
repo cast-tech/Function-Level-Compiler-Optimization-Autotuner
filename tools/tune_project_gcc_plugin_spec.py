@@ -2,24 +2,27 @@ import argparse
 import opentuner
 import json
 
-from tools.implementations.builders.cmake_project_builder import CMakeProjectBuilder
-from tools.implementations.runners.binary_file_runner import BinaryFileRunner
-from tools.implementations.runners.averaging_runner import AveragingRunner
+from tools.implementations.builders.spec_builder import SPECBuilder
+from tools.implementations.runners.spec_runner import SPECRunner
 from tools.services.iterative_tuner import iterative_tune
 from tools.services.gcc_plugin_support import PluginConfigGenerator, PluginEnhancedBuilder
 
 argparser = argparse.ArgumentParser(parents=opentuner.argparsers())
-argparser.add_argument('--project-dir', help='Path to the project directory', required=True)
+argparser.add_argument('--spec-root', help='Path to the spec root directory', required=True)
+argparser.add_argument('--spec-benchmark', help='Name of the spec benchmark', required=True)
+argparser.add_argument('--spec-config', help='Path to the spec config file', required=True)
+argparser.add_argument('--spec-threads-count', help='Number of threads for the spec run', type=int, default=1)
+argparser.add_argument('--spec-iterations-count', help='Number of iterations for the spec run', type=int, default=1)
+argparser.add_argument('--spec-size', help='Size of the spec run', choices=['test', 'train', 'refspeed'], default='test')
+argparser.add_argument('--spec-core-count', help='Number of cores for the spec build', type=int, default=1)
 argparser.add_argument('--compiler-bin', help='Path to the compiler bin directory', required=True)
-argparser.add_argument('--project-binary', help='Name of the project binary', required=True)
 argparser.add_argument('--gcc-plugin', help='Path to the gcc plugin .so file', required=True)
 argparser.add_argument('--optimization-entries', help='Path to the optimization entries file', required=True)
 argparser.add_argument('--output-dir', help='Path to the output directory', required=True)
 argparser.add_argument('--flag-set', choices=PluginConfigGenerator.FLAG_SET_CHOICES,
                        default='reduced', help='GCC optimization flag set to tune')
-argparser.add_argument('--build-cores', help='Number of parallel CMake build jobs', type=int, default=1)
 argparser.add_argument('--timeout', help='Program running timeout in seconds', type=int, default=10)
-argparser.add_argument('--cmd-args', help='Arguments passed to binary', type=str, default="")
+argparser.add_argument("--runner-cores", help="cores to set to taskset during runner run", type=str, default='')
 
 
 def load_json(json_path):
@@ -32,11 +35,10 @@ def main():
     args = argparser.parse_args()
 
     # Can be replaced with any Builder or Runner
-    base_builder = CMakeProjectBuilder(args.compiler_bin, args.project_dir, args.output_dir,
-                                       args.project_binary, args.build_cores)
+    base_builder = SPECBuilder(args.spec_root, args.spec_benchmark, args.spec_config, args.output_dir, args.spec_core_count, args.compiler_bin)
     builder = PluginEnhancedBuilder(base_builder, args.gcc_plugin, args.output_dir,
                                     args.flag_set)
-    runner = AveragingRunner(BinaryFileRunner(args.timeout, args.cmd_args))
+    runner = SPECRunner(args.spec_threads_count, args.spec_iterations_count, args.spec_size, args.timeout, args.runner_cores)
 
     optimization_entries = load_json(args.optimization_entries)
     iterative_tune(args, runner, builder, optimization_entries, args.output_dir)

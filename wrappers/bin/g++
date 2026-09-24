@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# --- debug logging (opt-in) -------------------------------------------------
+# The Python builders redirect the compiler's stdout/stderr to /dev/null, so
+# diagnostics are appended to the file named by $WRAPPER_DEBUG_LOG instead.
+# When the variable is unset this is a no-op and the wrapper behaves normally.
+_wrap_dbg() {
+    [[ -n "$WRAPPER_DEBUG_LOG" ]] || return 0
+    printf '%s\n' "$*" >> "$WRAPPER_DEBUG_LOG"
+}
+
+# Configuration and Argument Filtering
+GCC_BIN="${GCC_BIN}"
+MAP_STR=""
+config_path="${OPTIMIZATION_CONFIG_PATH}"
+# Whole-build "base" optimization flags (e.g. the globally tuned flag set).
+# For a file that has its own tuned entry these are REPLACED by the file's
+# flags rather than left to stack after them (where they would win).
+base_opt_flags="${BASE_OPTIMIZATION_FLAGS}"
+
+if [[ -f "$config_path" ]]; then
+    MAP_STR=$(cat "$config_path")
+fi
+
+compiler_args=()
+
+for arg in "$@"; do
+    if [[ "$arg" == GCC_BIN=* ]]; then
+        GCC_BIN="${arg#GCC_BIN=}"
+    elif [[ "$arg" == OPTIMIZATION_CONFIG_PATH=* ]]; then
+        config_path="${arg#OPTIMIZATION_CONFIG_PATH=}"
+        if [[ -f "$config_path" ]]; then
+            MAP_STR=$(cat "$config_path")
+        fi
+    elif [[ "$arg" == BASE_OPTIMIZATION_FLAGS=* ]]; then
+        base_opt_flags="${arg#BASE_OPTIMIZATION_FLAGS=}"
+    else
+        compiler_args+=("$arg")
+    fi
+done
+
+if [[ -n "$WRAPPER_DEBUG_LOG" ]]; then
+    _wrap_dbg "=== [g++ wrapper] $(date '+%F %T.%N') pid=$$ cwd=$PWD"
+    _wrap_dbg "[g++ wrapper] argv: $*"
+    _wrap_dbg "[g++ wrapper] GCC_BIN=$GCC_BIN"
+    _wrap_dbg "[g++ wrapper] base_opt_flags: $base_opt_flags"
+    if [[ -f "$config_path" ]]; then
+        _wrap_dbg "[g++ wrapper] config_path=$config_path (found, $(wc -c < "$config_path") bytes)"
+        _wrap_dbg "[g++ wrapper] config contents:"
+        _wrap_dbg "$MAP_STR"
+    else
+        _wrap_dbg "[g++ wrapper] config_path=$config_path (NOT FOUND -- no file-level flags will be injected)"
+    fi
+fi
+
+# Step 1: Parse the target map string
+IFS=$'\n' read -d '' -ra ENTRIES <<< "${MAP_STR}" || true
+
+extra_flags=()
+found_target=false
+# Identify targets and collect flags from the filtered compiler arguments
+for arg in "${compiler_args[@]}"; do
+    for entry in "${ENTRIES[@]}"; do
+        target="${entry%%:*}"
+        flags_string="${entry#*:}"
+
+        if [[ "$arg" == "$target" ]] || [[ "$arg" == *"/$target" ]]; then
+            _wrap_dbg "[g++ wrapper]   MATCH arg='$arg' target='$target' flags='$flags_string'"
+            # Split the flag string into individual flags and add to our list
+            read -ra flags_array <<< "$flags_string"
+            extra_flags+=("${flags_array[@]}")
+            found_target=true
+        fi
+    done
+done
+
+if [[ "$found_target" == "false" ]]; then
+    _wrap_dbg "[g++ wrapper] no target matched; passthrough exec: $GCC_BIN/g++ ${compiler_args[*]}"
+    "${GCC_BIN}/g++" "${compiler_args[@]}"
+    exit 0
+fi
+
+# For a matched target file, the per-file flags fully replace the base/global
+# optimization flags: build the set of base-flag tokens to drop from the command.
+# BASE_OPTIMIZATION_FLAGS is set by the Python builder without the plugin flags,
+# so -fplugin.../-fplugin-arg-... are never in this set.
+declare -A _drop_base
+if [[ -n "$base_opt_flags" ]]; then
+    for _f in $base_opt_flags; do
+        [[ "$_f" =~ ^-O([0123s]|fast)$ ]] && continue   # handled by the -O swap below
+        _drop_base["$_f"]=1
+    done
+fi
+
+_wrap_dbg "[g++ wrapper] injected extra_flags: ${extra_flags[*]}"
+_wrap_dbg "[g++ wrapper] dropping base opt flags for matched target: ${!_drop_base[*]}"
+
+# Step 2: Build the final command arguments
+final_args=()
+flags_injected=false
+
+for arg in "${compiler_args[@]}"; do
+    # Inject instead of -O{0,1,2,3,s,fast} if found
+    if [[ "$arg" =~ ^-O([0123s]|fast)$ ]]; then
+        final_args+=("${extra_flags[@]}")
+        flags_injected=true
+        continue
+    fi
+    # Drop the base/global optimization flags so the file's flags are authoritative
+    if [[ -n "${_drop_base[$arg]:-}" ]]; then
+        continue
+    fi
+    final_args+=("$arg")
+done
+
+# If -O optimization flag wasn't present, append extra flags at the end
+if [[ "$flags_injected" == "false" ]]; then
+    final_args+=("${extra_flags[@]}")
+fi
+
+# Step 3: Run the command
+_wrap_dbg "[g++ wrapper] final exec: $GCC_BIN/g++ ${final_args[*]}"
+"${GCC_BIN}/g++" "${final_args[@]}"
