@@ -4,4 +4,7 @@ setup(
     name="function_autotuner",
     version="0.1.0",
     packages=find_packages(),
+    install_requires=[
+        "pyelftools>=0.29",
+    ],
 )

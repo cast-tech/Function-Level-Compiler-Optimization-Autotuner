@@ -35,7 +35,7 @@ class Perf:
         return result.stdout
 
     @staticmethod
-    def parse_report(perf_report):
+    def parse_report(perf_report, skip_command_prefix=None):
         duration = Perf.__get_sample_duration(perf_report)
         filtered_lines = [line for line in perf_report.strip().split('\n') if not line.strip().startswith('#')]
 
@@ -43,9 +43,13 @@ class Perf:
         for line in filtered_lines:
             parts = line.split()
             if len(parts) >= 5:
+                if skip_command_prefix:
+                    command = parts[2]
+                    if command.startswith(skip_command_prefix):
+                        continue
                 self_percent = parts[1]
                 symbol_type = parts[4]
-                self_duration = duration * float(self_percent.rstrip('%'))
+                self_duration = duration * float(self_percent.rstrip('%')) / 100.0
                 function = ' '.join(parts[5:]).strip()
                 function_name = function.split('(')[0].split('.')[0].split(':')[-1]
                 if len(function_name) > 0 and function_name[0] != '0' and self_duration > 0 and symbol_type == '[.]':

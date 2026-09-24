@@ -6,28 +6,36 @@ import os
 from opentuner.resultsdb.models import Result
 from opentuner.search import manipulator
 from tools.services.cpu_info import get_cpu_info
-from tools.services.gcc_plugin_support import PluginEnhancedBuilder
-from tools.services.gcc_plugin_support import PluginConfigGenerationError
+from tools.services.enhanced_builder import EnhancedBuilderError
 from tools.interfaces.runner import RunError
 from tools.interfaces.builder import BuildError
+from tools.implementations.runners.averaging_runner import UnstableRuntimeError
+
+
+class UnstableBaselineError(Exception):
+    pass
 
 
 class CompilerOptimizationsTuner(opentuner.measurement.MeasurementInterface):
-    def __init__(self, args, runner, builder, gcc_plugin_path, init_opt_config, current_opt_entry, name, do_warmup,
-                 output_dir, *pargs, **kwargs):
+    def __init__(self, args, runner, builder, init_opt_config, current_opt_entry, name, do_warmup,
+                 output_dir, base_flags=None, *pargs, **kwargs):
         super(CompilerOptimizationsTuner, self).__init__(args, *pargs, **kwargs)
         opentuner.init_logging()
         self.log = logging.getLogger(name)
         self.log.info(f"Tuner init...")
         self.runner = runner
-        self.enhanced_builder = PluginEnhancedBuilder(builder, gcc_plugin_path, output_dir)
+        self.enhanced_builder = builder
         self.init_opt_config = init_opt_config
         self.current_opt_entry = current_opt_entry
+        # Flags applied to the whole build before the per-file/function overrides.
+        # Defaults to -O3; the 3-stage tuner passes the globally tuned flag set here.
+        self.base_flags = list(base_flags) if base_flags else ["-O3"]
         self.history = []
         self.parallel_compile = False
         self.report_filename = os.path.join(output_dir, name + "_report.json")
         if do_warmup:
             self.warmup()
+        self.baseline_runtime = self.run_baseline()
 
     def warmup(self, warmup_steps=2):
         self.log.info(f"Warmup...")
@@ -52,12 +60,24 @@ class CompilerOptimizationsTuner(opentuner.measurement.MeasurementInterface):
             "tunable_optimizations": self.enhanced_builder.config_generator.BINARY_OPTIMIZATION_KEYS,
             "init_opt_config": self.init_opt_config,
             "current_opt_entry": self.current_opt_entry,
+            "baseline_runtime": self.baseline_runtime,
             "history": self.history
         }
 
+    def run_baseline(self):
+        self.log.info(f"Running baseline...")
+        runtime = self.compile_and_run_inner(self.init_opt_config)
+        if runtime == float('inf'):
+            self.log.warning(f"Runtime evaluation failed")
+            return float('inf')
+        return runtime
+     
     def compile_and_run(self, desired_result, input, limit):
         optimizations_config = self.get_optimizations_config(desired_result.configuration.data)
-        runtime = self.compile_and_run_inner(optimizations_config)
+        try:
+            runtime = self.compile_and_run_inner(optimizations_config)
+        except UnstableRuntimeError:
+            return Result(state='ERROR', time=float('inf'))
         if runtime == float('inf'):
             return Result(state='ERROR', time=float('inf'))
         info = {'runtime': runtime, 'optimizations': optimizations_config[-1]["optimizations"]}
@@ -66,7 +86,7 @@ class CompilerOptimizationsTuner(opentuner.measurement.MeasurementInterface):
 
     def compile_and_run_inner(self, optimizations_config):
         try:
-            build_status = self.enhanced_builder.build_with_optimizations(optimizations_config, ["-O3"])
+            build_status = self.enhanced_builder.build_with_optimizations(optimizations_config, self.base_flags)
             runtime = self.runner.run(build_status)
         except RunError as e:
             self.log.warning(f"Runner failed: {e}")
@@ -74,8 +94,8 @@ class CompilerOptimizationsTuner(opentuner.measurement.MeasurementInterface):
         except BuildError as e:
             self.log.warning(f"Builder failed: {e}")
             return float('inf')
-        except PluginConfigGenerationError as e:
-            self.log.warning(f"Plugin Config Generator failed: {e}")
+        except EnhancedBuilderError as e:
+            self.log.warning(f"Enhanced Builder failed: {e}")
             return float('inf')
         if runtime == float('inf'):
             self.log.warning(f"Runtime evaluation failed")

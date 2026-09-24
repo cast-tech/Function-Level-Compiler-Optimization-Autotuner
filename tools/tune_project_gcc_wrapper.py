@@ -6,16 +6,16 @@ from tools.implementations.builders.cmake_project_builder import CMakeProjectBui
 from tools.implementations.runners.binary_file_runner import BinaryFileRunner
 from tools.implementations.runners.averaging_runner import AveragingRunner
 from tools.services.iterative_tuner import iterative_tune
-from tools.services.gcc_plugin_support import PluginConfigGenerator, PluginEnhancedBuilder
+from tools.services.gcc_wrapper_support import WrapperConfigGenerator, WrapperEnhancedBuilder
 
 argparser = argparse.ArgumentParser(parents=opentuner.argparsers())
 argparser.add_argument('--project-dir', help='Path to the project directory', required=True)
 argparser.add_argument('--compiler-bin', help='Path to the compiler bin directory', required=True)
 argparser.add_argument('--project-binary', help='Name of the project binary', required=True)
-argparser.add_argument('--gcc-plugin', help='Path to the gcc plugin .so file', required=True)
+argparser.add_argument('--gcc-wrapper-bin', help='Path to the gcc wrapper bin directory', required=True)
 argparser.add_argument('--optimization-entries', help='Path to the optimization entries file', required=True)
 argparser.add_argument('--output-dir', help='Path to the output directory', required=True)
-argparser.add_argument('--flag-set', choices=PluginConfigGenerator.FLAG_SET_CHOICES,
+argparser.add_argument('--flag-set', choices=WrapperConfigGenerator.FLAG_SET_CHOICES,
                        default='reduced', help='GCC optimization flag set to tune')
 argparser.add_argument('--build-cores', help='Number of parallel CMake build jobs', type=int, default=1)
 argparser.add_argument('--timeout', help='Program running timeout in seconds', type=int, default=10)
@@ -32,10 +32,10 @@ def main():
     args = argparser.parse_args()
 
     # Can be replaced with any Builder or Runner
-    base_builder = CMakeProjectBuilder(args.compiler_bin, args.project_dir, args.output_dir,
+    base_builder = CMakeProjectBuilder(args.gcc_wrapper_bin, args.project_dir, args.output_dir,
                                        args.project_binary, args.build_cores)
-    builder = PluginEnhancedBuilder(base_builder, args.gcc_plugin, args.output_dir,
-                                    args.flag_set)
+    builder = WrapperEnhancedBuilder(base_builder, args.gcc_wrapper_bin, args.compiler_bin,
+                                     args.output_dir, args.flag_set)
     runner = AveragingRunner(BinaryFileRunner(args.timeout, args.cmd_args))
 
     optimization_entries = load_json(args.optimization_entries)
