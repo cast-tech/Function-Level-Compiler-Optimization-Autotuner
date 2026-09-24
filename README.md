@@ -1,4 +1,4 @@
-# Function-Level Compiler Optimization Autotuner
+# Multi-Level Compiler Optimization Autotuner
 
 This project profiles C/C++ programs and uses OpenTuner to search GCC optimization
 settings at global, source-file, or function scope. Function settings are applied by
